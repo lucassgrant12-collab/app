@@ -199,9 +199,13 @@
     box-shadow: var(--shadow);
   }
   .lv-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .lv-times { gap: 18px; }
+  .lv-row input[type="date"] { flex: 1 1 auto; min-width: 0; }
+  .lv-times { gap: 12px; }
+  .lv-times .time-field { flex: 1 1 0; min-width: 0; }
+  .lv-times .time-field .time-input { flex: 1 1 auto; width: auto; min-width: 0; }
   .log-visit label { font-size: 13px; color: var(--muted); white-space: nowrap; }
-  .log-visit .btn { align-self: center; padding: 8px 22px; }
+  .lv-actions { display: flex; justify-content: center; gap: 10px; }
+  .add-visit-btn { width: 100%; padding: 12px; }
   .log-visit input[type="date"],
   .log-visit input[type="text"],
   .log-visit select {
@@ -368,6 +372,7 @@
 
   let state = { people: [] };
   let selectedId = null;
+  let showVisitForm = false;
   let currentUserId = null;
 
   /* ---------------- Helpers ---------------- */
@@ -500,6 +505,7 @@
       .select("id, date, time24, end24").single();
     if (error) return alert(error.message);
     p.visits.push({ id: data.id, date: data.date, time24: data.time24, end24: data.end24, notes: [] });
+    showVisitForm = false; // collapse back to the list so the new visit shows
     renderPeople();
     renderMain();
   }
@@ -557,6 +563,7 @@
 
   function selectPerson(id) {
     selectedId = id;
+    showVisitForm = false;
     // On mobile this slides from the people list into the detail view.
     $("appScreen").classList.add("show-detail");
     renderPeople();
@@ -592,6 +599,7 @@
         </div>
         <div class="subtle">${person.visits.length} visit${person.visits.length === 1 ? "" : "s"} · ${totalNotes} note${totalNotes === 1 ? "" : "s"}</div>
 
+        ${showVisitForm ? `
         <form class="log-visit" id="logVisitForm">
           <div class="lv-row">
             <label for="visitDate">Log a visit</label>
@@ -617,8 +625,12 @@
               </select>
             </span>
           </div>
-          <button class="btn sm" type="submit">Add</button>
-        </form>
+          <div class="lv-actions">
+            <button type="button" class="btn ghost sm" id="cancelAddVisit">Cancel</button>
+            <button class="btn sm" type="submit">Add</button>
+          </div>
+        </form>` : `
+        <button class="btn add-visit-btn" id="showAddVisit">+ Add a visit</button>`}
 
         <div id="visits">
           ${visits.length ? visits.map(v => renderVisit(v)).join("") :
@@ -629,30 +641,36 @@
     const backBtn = $("backBtn");
     if (backBtn) backBtn.addEventListener("click", showList);
     $("deletePerson").addEventListener("click", () => deletePerson(person.id));
-    $("logVisitForm").addEventListener("submit", e => {
-      e.preventDefault();
-      const date = $("visitDate").value;
-      const startInput = $("startTime");
-      const endInput = $("endTime");
-      const start24 = parseClock(startInput.value, $("startMeridiem").value);
-      if (!start24) {
-        startInput.focus();
-        startInput.select();
-        alert("Enter a start time like 9 or 9:30, then pick AM or PM.");
-        return;
-      }
-      let end24 = null;
-      if (endInput.value.trim()) {
-        end24 = parseClock(endInput.value, $("endMeridiem").value);
-        if (!end24) {
-          endInput.focus();
-          endInput.select();
-          alert("End time looks off — use something like 5 or 5:30, or leave it blank.");
+
+    if (showVisitForm) {
+      $("cancelAddVisit").addEventListener("click", () => { showVisitForm = false; renderMain(); });
+      $("logVisitForm").addEventListener("submit", e => {
+        e.preventDefault();
+        const date = $("visitDate").value;
+        const startInput = $("startTime");
+        const endInput = $("endTime");
+        const start24 = parseClock(startInput.value, $("startMeridiem").value);
+        if (!start24) {
+          startInput.focus();
+          startInput.select();
+          alert("Enter a start time like 9 or 9:30, then pick AM or PM.");
           return;
         }
-      }
-      addVisit(person.id, date, start24, end24);
-    });
+        let end24 = null;
+        if (endInput.value.trim()) {
+          end24 = parseClock(endInput.value, $("endMeridiem").value);
+          if (!end24) {
+            endInput.focus();
+            endInput.select();
+            alert("End time looks off — use something like 5 or 5:30, or leave it blank.");
+            return;
+          }
+        }
+        addVisit(person.id, date, start24, end24);
+      });
+    } else {
+      $("showAddVisit").addEventListener("click", () => { showVisitForm = true; renderMain(); });
+    }
     main.querySelectorAll("[data-del-visit]").forEach(btn =>
       btn.addEventListener("click", () => deleteVisit(person.id, btn.dataset.delVisit)));
     main.querySelectorAll("[data-del-note]").forEach(btn =>
