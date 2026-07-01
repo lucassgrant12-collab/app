@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Attendance Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #000000;
+    --muted: #6b6b6b;
+    --line: #e2e2e2;
+    --hover: #f5f5f5;
+    --sel: #000000;
+    --sel-fg: #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input, textarea {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+  }
+  .app {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    height: 100vh;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .sidebar-head {
+    padding: 24px 20px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .sidebar-head h1 {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .sidebar-head p {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 2px;
+  }
+  .add-person {
+    display: flex;
+    gap: 8px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .add-person input {
+    flex: 1;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    padding: 8px 10px;
+    border-radius: 6px;
+    outline: none;
+  }
+  .add-person input:focus { border-color: var(--fg); }
+  .btn {
+    border: 1px solid var(--fg);
+    background: var(--fg);
+    color: var(--sel-fg);
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: opacity .12s;
+  }
+  .btn:hover { opacity: .82; }
+  .btn.ghost {
+    background: var(--bg);
+    color: var(--fg);
+  }
+  .btn.ghost:hover { background: var(--hover); opacity: 1; }
+  .btn.sm { padding: 6px 10px; font-size: 13px; }
+
+  .people {
+    list-style: none;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+  }
+  .person-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--line);
+  }
+  .person-row:hover { background: var(--hover); }
+  .person-row.active { background: var(--sel); color: var(--sel-fg); }
+  .person-row .name { font-weight: 500; }
+  .person-row .count {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .person-row.active .count { color: rgba(255,255,255,.7); }
+  .empty {
+    padding: 24px 20px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  /* Main */
+  .main {
+    overflow-y: auto;
+    min-height: 0;
+  }
+  .main-inner { max-width: 720px; padding: 40px 48px; margin: 0 auto; }
+  .placeholder {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    text-align: center;
+    padding: 40px;
+  }
+  .person-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 4px;
+  }
+  .person-head h2 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+  .subtle { color: var(--muted); font-size: 13px; margin-bottom: 28px; }
+
+  .log-visit {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    margin-bottom: 28px;
+  }
+  .log-visit label { font-size: 13px; color: var(--muted); }
+  .log-visit input[type="date"] {
+    border: 1px solid var(--line);
+    background: var(--bg);
+    padding: 8px 10px;
+    border-radius: 6px;
+    outline: none;
+  }
+  .log-visit input[type="date"]:focus { border-color: var(--fg); }
+
+  .visit {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .visit-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: var(--hover);
+  }
+  .visit-date {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .visit-day { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 8px; }
+  .visit-body { padding: 8px 16px 16px; }
+  .notes { list-style: none; }
+  .note {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .note:last-child { border-bottom: none; }
+  .note-text { white-space: pre-wrap; word-break: break-word; }
+  .note-time { color: var(--muted); font-size: 11px; white-space: nowrap; margin-top: 2px; }
+  .no-notes { color: var(--muted); font-size: 13px; padding: 8px 0; }
+  .add-note {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .add-note textarea {
+    flex: 1;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    padding: 8px 10px;
+    border-radius: 6px;
+    outline: none;
+    resize: vertical;
+    min-height: 38px;
+  }
+  .add-note textarea:focus { border-color: var(--fg); }
+
+  .icon-btn {
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--muted);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  .icon-btn:hover { color: var(--fg); background: rgba(0,0,0,.06); }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <h1>Attendance</h1>
+      <p>Track who came in, and when.</p>
+    </div>
+    <form class="add-person" id="addPersonForm">
+      <input id="personName" type="text" placeholder="Add a person…" autocomplete="off" />
+      <button class="btn" type="submit">Add</button>
+    </form>
+    <ul class="people" id="peopleList"></ul>
+  </aside>
+
+  <main class="main" id="main">
+    <div class="placeholder" id="placeholder">Select a person, or add one to get started.</div>
+  </main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const STORE_KEY = "attendance.v1";
+  let state = load();
+  let selectedId = null;
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return { people: [] };
+  }
+  function save() {
+    localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  }
+  function uid() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+  function todayISO() {
+    const d = new Date();
+    const off = d.getTimezoneOffset();
+    return new Date(d.getTime() - off * 60000).toISOString().slice(0, 10);
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, c => (
+      { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+    ));
+  }
+  function fmtDate(iso) {
+    const [y, m, d] = iso.split("-").map(Number);
+    const dt = new Date(y, m - 1, d);
+    return dt.toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" });
+  }
+  function weekday(iso) {
+    const [y, m, d] = iso.split("-").map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: "long" });
+  }
+  function fmtTime(ts) {
+    return new Date(ts).toLocaleString(undefined, {
+      month: "short", day: "numeric", hour: "numeric", minute: "2-digit"
+    });
+  }
+
+  function getPerson(id) {
+    return state.people.find(p => p.id === id);
+  }
+
+  /* ---- People sidebar ---- */
+  function renderPeople() {
+    const list = document.getElementById("peopleList");
+    if (!state.people.length) {
+      list.innerHTML = '<li class="empty">No people yet.</li>';
+      return;
+    }
+    const sorted = [...state.people].sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
+    );
+    list.innerHTML = sorted.map(p => `
+      <li class="person-row ${p.id === selectedId ? "active" : ""}" data-id="${p.id}">
+        <span class="name">${esc(p.name)}</span>
+        <span class="count">${p.visits.length} visit${p.visits.length === 1 ? "" : "s"}</span>
+      </li>
+    `).join("");
+    list.querySelectorAll(".person-row").forEach(row => {
+      row.addEventListener("click", () => selectPerson(row.dataset.id));
+    });
+  }
+
+  function selectPerson(id) {
+    selectedId = id;
+    renderPeople();
+    renderMain();
+  }
+
+  /* ---- Main panel ---- */
+  function renderMain() {
+    const main = document.getElementById("main");
+    const person = getPerson(selectedId);
+    if (!person) {
+      main.innerHTML = '<div class="placeholder">Select a person, or add one to get started.</div>';
+      return;
+    }
+
+    const visits = [...person.visits].sort((a, b) => b.date.localeCompare(a.date));
+    const totalNotes = person.visits.reduce((n, v) => n + v.notes.length, 0);
+
+    main.innerHTML = `
+      <div class="main-inner">
+        <div class="person-head">
+          <h2>${esc(person.name)}</h2>
+          <button class="icon-btn" id="deletePerson">Delete person</button>
+        </div>
+        <div class="subtle">${person.visits.length} visit${person.visits.length === 1 ? "" : "s"} · ${totalNotes} note${totalNotes === 1 ? "" : "s"}</div>
+
+        <form class="log-visit" id="logVisitForm">
+          <label for="visitDate">Log a visit</label>
+          <input type="date" id="visitDate" value="${todayISO()}" max="${todayISO()}" />
+          <button class="btn sm" type="submit">Add visit</button>
+        </form>
+
+        <div id="visits">
+          ${visits.length ? visits.map(v => renderVisit(v)).join("") :
+            '<div class="empty" style="padding-left:0">No visits logged yet.</div>'}
+        </div>
+      </div>
+    `;
+
+    document.getElementById("deletePerson").addEventListener("click", () => deletePerson(person.id));
+    document.getElementById("logVisitForm").addEventListener("submit", e => {
+      e.preventDefault();
+      addVisit(person.id, document.getElementById("visitDate").value);
+    });
+
+    main.querySelectorAll("[data-del-visit]").forEach(btn =>
+      btn.addEventListener("click", () => deleteVisit(person.id, btn.dataset.delVisit)));
+    main.querySelectorAll("[data-del-note]").forEach(btn =>
+      btn.addEventListener("click", () => deleteNote(person.id, btn.dataset.visit, btn.dataset.delNote)));
+    main.querySelectorAll(".add-note").forEach(form =>
+      form.addEventListener("submit", e => {
+        e.preventDefault();
+        const vid = form.dataset.visit;
+        const ta = form.querySelector("textarea");
+        addNote(person.id, vid, ta.value);
+      }));
+  }
+
+  function renderVisit(v) {
+    const notes = [...v.notes].sort((a, b) => a.ts - b.ts);
+    return `
+      <div class="visit">
+        <div class="visit-head">
+          <div class="visit-date">${fmtDate(v.date)}<span class="visit-day">${weekday(v.date)}</span></div>
+          <button class="icon-btn" data-del-visit="${v.id}">Remove</button>
+        </div>
+        <div class="visit-body">
+          <ul class="notes">
+            ${notes.length ? notes.map(n => `
+              <li class="note">
+                <span class="note-text">${esc(n.text)}</span>
+                <span style="display:flex;gap:8px;align-items:flex-start">
+                  <span class="note-time">${fmtTime(n.ts)}</span>
+                  <button class="icon-btn" data-del-note="${n.id}" data-visit="${v.id}">✕</button>
+                </span>
+              </li>`).join("") :
+              '<li class="no-notes">No notes for this visit.</li>'}
+          </ul>
+          <form class="add-note" data-visit="${v.id}">
+            <textarea rows="1" placeholder="Add a note…"></textarea>
+            <button class="btn sm ghost" type="submit">Save</button>
+          </form>
+        </div>
+      </div>
+    `;
+  }
+
+  /* ---- Mutations ---- */
+  function addPerson(name) {
+    name = name.trim();
+    if (!name) return;
+    const person = { id: uid(), name, visits: [] };
+    state.people.push(person);
+    save();
+    selectPerson(person.id);
+  }
+  function deletePerson(id) {
+    const p = getPerson(id);
+    if (!p) return;
+    if (!confirm(`Delete ${p.name} and all their visits?`)) return;
+    state.people = state.people.filter(p => p.id !== id);
+    if (selectedId === id) selectedId = null;
+    save();
+    renderPeople();
+    renderMain();
+  }
+  function addVisit(personId, date) {
+    if (!date) return;
+    const p = getPerson(personId);
+    if (!p) return;
+    let visit = p.visits.find(v => v.date === date);
+    if (!visit) {
+      visit = { id: uid(), date, notes: [] };
+      p.visits.push(visit);
+    }
+    save();
+    renderPeople();
+    renderMain();
+  }
+  function deleteVisit(personId, visitId) {
+    const p = getPerson(personId);
+    if (!p) return;
+    p.visits = p.visits.filter(v => v.id !== visitId);
+    save();
+    renderPeople();
+    renderMain();
+  }
+  function addNote(personId, visitId, text) {
+    text = text.trim();
+    if (!text) return;
+    const p = getPerson(personId);
+    const v = p && p.visits.find(v => v.id === visitId);
+    if (!v) return;
+    v.notes.push({ id: uid(), text, ts: Date.now() });
+    save();
+    renderMain();
+  }
+  function deleteNote(personId, visitId, noteId) {
+    const p = getPerson(personId);
+    const v = p && p.visits.find(v => v.id === visitId);
+    if (!v) return;
+    v.notes = v.notes.filter(n => n.id !== noteId);
+    save();
+    renderMain();
+  }
+
+  /* ---- Init ---- */
+  document.getElementById("addPersonForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const input = document.getElementById("personName");
+    addPerson(input.value);
+    input.value = "";
+    input.focus();
+  });
+
+  renderPeople();
+  renderMain();
+})();
+</script>
+</body>
+</html>
