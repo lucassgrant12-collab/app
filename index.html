@@ -27,18 +27,69 @@
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
   }
-  button, input, textarea {
+  button, input, textarea, select {
     font-family: inherit;
     font-size: inherit;
     color: inherit;
   }
+  .hidden { display: none !important; }
+
+  /* ---- Auth screen ---- */
+  .auth-wrap {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .auth-card {
+    width: 100%;
+    max-width: 360px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 32px 28px;
+  }
+  .auth-card h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+  .auth-card p.sub { color: var(--muted); font-size: 13px; margin: 4px 0 22px; }
+  .auth-card label { display: block; font-size: 12px; color: var(--muted); margin: 14px 0 6px; }
+  .auth-card input {
+    width: 100%;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    padding: 10px 12px;
+    border-radius: 8px;
+    outline: none;
+  }
+  .auth-card input:focus { border-color: var(--fg); }
+  .auth-actions { display: flex; gap: 8px; margin-top: 22px; }
+  .auth-actions .btn { flex: 1; text-align: center; padding: 10px; }
+  .auth-msg { font-size: 12px; margin-top: 14px; min-height: 16px; }
+  .auth-msg.err { color: #b00020; }
+  .auth-msg.ok { color: var(--fg); }
+
+  .btn {
+    border: 1px solid var(--fg);
+    background: var(--fg);
+    color: var(--sel-fg);
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: opacity .12s;
+  }
+  .btn:hover { opacity: .82; }
+  .btn.ghost { background: var(--bg); color: var(--fg); }
+  .btn.ghost:hover { background: var(--hover); opacity: 1; }
+  .btn.sm { padding: 6px 10px; font-size: 13px; }
+  .btn:disabled { opacity: .5; cursor: default; }
+
+  /* ---- App layout ---- */
   .app {
     display: grid;
     grid-template-columns: 300px 1fr;
     height: 100vh;
   }
-
-  /* Sidebar */
   .sidebar {
     border-right: 1px solid var(--line);
     display: flex;
@@ -46,19 +97,17 @@
     min-height: 0;
   }
   .sidebar-head {
-    padding: 24px 20px 16px;
+    padding: 20px;
     border-bottom: 1px solid var(--line);
   }
-  .sidebar-head h1 {
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
+  .sidebar-head .top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
   }
-  .sidebar-head p {
-    color: var(--muted);
-    font-size: 12px;
-    margin-top: 2px;
-  }
+  .sidebar-head h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; }
+  .sidebar-head .who { color: var(--muted); font-size: 11px; margin-top: 3px; word-break: break-all; }
   .add-person {
     display: flex;
     gap: 8px;
@@ -74,31 +123,8 @@
     outline: none;
   }
   .add-person input:focus { border-color: var(--fg); }
-  .btn {
-    border: 1px solid var(--fg);
-    background: var(--fg);
-    color: var(--sel-fg);
-    padding: 8px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-    white-space: nowrap;
-    transition: opacity .12s;
-  }
-  .btn:hover { opacity: .82; }
-  .btn.ghost {
-    background: var(--bg);
-    color: var(--fg);
-  }
-  .btn.ghost:hover { background: var(--hover); opacity: 1; }
-  .btn.sm { padding: 6px 10px; font-size: 13px; }
 
-  .people {
-    list-style: none;
-    overflow-y: auto;
-    flex: 1;
-    min-height: 0;
-  }
+  .people { list-style: none; overflow-y: auto; flex: 1; min-height: 0; }
   .person-row {
     display: flex;
     align-items: center;
@@ -110,22 +136,11 @@
   .person-row:hover { background: var(--hover); }
   .person-row.active { background: var(--sel); color: var(--sel-fg); }
   .person-row .name { font-weight: 500; }
-  .person-row .count {
-    font-size: 12px;
-    color: var(--muted);
-  }
+  .person-row .count { font-size: 12px; color: var(--muted); }
   .person-row.active .count { color: rgba(255,255,255,.7); }
-  .empty {
-    padding: 24px 20px;
-    color: var(--muted);
-    font-size: 13px;
-  }
+  .empty { padding: 24px 20px; color: var(--muted); font-size: 13px; }
 
-  /* Main */
-  .main {
-    overflow-y: auto;
-    min-height: 0;
-  }
+  .main { overflow-y: auto; min-height: 0; }
   .main-inner { max-width: 720px; padding: 40px 48px; margin: 0 auto; }
   .placeholder {
     height: 100%;
@@ -143,11 +158,7 @@
     gap: 16px;
     margin-bottom: 4px;
   }
-  .person-head h2 {
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-  }
+  .person-head h2 { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; }
   .subtle { color: var(--muted); font-size: 13px; margin-bottom: 28px; }
 
   .log-visit {
@@ -176,12 +187,7 @@
   .log-visit select { cursor: pointer; }
   .visit-time { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 10px; }
 
-  .visit {
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    margin-bottom: 14px;
-    overflow: hidden;
-  }
+  .visit { border: 1px solid var(--line); border-radius: 10px; margin-bottom: 14px; overflow: hidden; }
   .visit-head {
     display: flex;
     align-items: center;
@@ -189,10 +195,7 @@
     padding: 14px 16px;
     background: var(--hover);
   }
-  .visit-date {
-    font-weight: 600;
-    letter-spacing: -0.01em;
-  }
+  .visit-date { font-weight: 600; letter-spacing: -0.01em; }
   .visit-day { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 8px; }
   .visit-body { padding: 8px 16px 16px; }
   .notes { list-style: none; }
@@ -207,11 +210,7 @@
   .note-text { white-space: pre-wrap; word-break: break-word; }
   .note-time { color: var(--muted); font-size: 11px; white-space: nowrap; margin-top: 2px; }
   .no-notes { color: var(--muted); font-size: 13px; padding: 8px 0; }
-  .add-note {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-  }
+  .add-note { display: flex; gap: 8px; margin-top: 10px; }
   .add-note textarea {
     flex: 1;
     border: 1px solid var(--line);
@@ -237,11 +236,37 @@
 </style>
 </head>
 <body>
-<div class="app">
+
+<!-- ============ Auth screen ============ -->
+<div class="auth-wrap" id="authScreen">
+  <div class="auth-card">
+    <h1>Attendance</h1>
+    <p class="sub">Sign in, or create an account to start tracking.</p>
+    <form id="authForm" autocomplete="on">
+      <label for="authEmail">Email</label>
+      <input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com" required />
+      <label for="authPassword">Password</label>
+      <input id="authPassword" type="password" autocomplete="current-password" placeholder="••••••••" required />
+      <div class="auth-actions">
+        <button class="btn" type="submit" id="signInBtn">Sign in</button>
+        <button class="btn ghost" type="button" id="signUpBtn">Create account</button>
+      </div>
+      <div class="auth-msg" id="authMsg"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ App ============ -->
+<div class="app hidden" id="appScreen">
   <aside class="sidebar">
     <div class="sidebar-head">
-      <h1>Attendance</h1>
-      <p>Track who came in, and when.</p>
+      <div class="top">
+        <div>
+          <h1>Attendance</h1>
+          <div class="who" id="whoAmI"></div>
+        </div>
+        <button class="btn ghost sm" id="logoutBtn">Log out</button>
+      </div>
     </div>
     <form class="add-person" id="addPersonForm">
       <input id="personName" type="text" placeholder="Add a person…" autocomplete="off" />
@@ -251,35 +276,44 @@
   </aside>
 
   <main class="main" id="main">
-    <div class="placeholder" id="placeholder">Select a person, or add one to get started.</div>
+    <div class="placeholder">Select a person, or add one to get started.</div>
   </main>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function () {
   "use strict";
 
-  const STORE_KEY = "attendance.v1";
-  let state = load();
-  let selectedId = null;
+  // ============================================================
+  //  CONFIG — paste your Supabase project values here.
+  //  Find them in: Supabase Dashboard → Project Settings → API
+  // ============================================================
+  const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co";
+  const SUPABASE_ANON_KEY = "YOUR-ANON-PUBLIC-KEY";
+  // ============================================================
 
-  function load() {
-    try {
-      const raw = localStorage.getItem(STORE_KEY);
-      if (raw) return JSON.parse(raw);
-    } catch (e) {}
-    return { people: [] };
+  const $ = id => document.getElementById(id);
+
+  // Guard against missing config so the page fails loudly, not silently.
+  if (SUPABASE_URL.includes("YOUR-PROJECT") || SUPABASE_ANON_KEY.includes("YOUR-ANON")) {
+    $("authMsg").textContent = "Add your Supabase URL and anon key in index.html (the CONFIG block).";
+    $("authMsg").className = "auth-msg err";
+    $("signInBtn").disabled = true;
+    $("signUpBtn").disabled = true;
   }
-  function save() {
-    localStorage.setItem(STORE_KEY, JSON.stringify(state));
-  }
-  function uid() {
-    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-  }
+
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let state = { people: [] };
+  let selectedId = null;
+  let currentUserId = null;
+
+  /* ---------------- Helpers ---------------- */
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
   function todayISO() {
     const d = new Date();
-    const off = d.getTimezoneOffset();
-    return new Date(d.getTime() - off * 60000).toISOString().slice(0, 10);
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
   }
   function esc(s) {
     return String(s).replace(/[&<>"']/g, c => (
@@ -288,8 +322,7 @@
   }
   function fmtDate(iso) {
     const [y, m, d] = iso.split("-").map(Number);
-    const dt = new Date(y, m - 1, d);
-    return dt.toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" });
+    return new Date(y, m - 1, d).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" });
   }
   function weekday(iso) {
     const [y, m, d] = iso.split("-").map(Number);
@@ -322,7 +355,6 @@
     if (h12 === 0) h12 = 12;
     return h12 + ":" + String(m).padStart(2, "0") + " " + mer;
   }
-  // Current wall-clock time, split for prefilling the form.
   function nowClock() {
     const d = new Date();
     const h = d.getHours();
@@ -331,30 +363,109 @@
     if (h12 === 0) h12 = 12;
     return { text: h12 + ":" + String(d.getMinutes()).padStart(2, "0"), meridiem: mer };
   }
+  function getPerson(id) { return state.people.find(p => p.id === id); }
 
-  function getPerson(id) {
-    return state.people.find(p => p.id === id);
+  /* ---------------- Data (Supabase) ---------------- */
+  async function loadData() {
+    const { data, error } = await sb
+      .from("people")
+      .select("id, name, visits ( id, date, time24, notes ( id, text, ts:created_at ) )");
+    if (error) {
+      console.error(error);
+      alert("Could not load your data: " + error.message);
+      state = { people: [] };
+      return;
+    }
+    state = {
+      people: (data || []).map(p => ({
+        id: p.id,
+        name: p.name,
+        visits: (p.visits || []).map(v => ({
+          id: v.id, date: v.date, time24: v.time24,
+          notes: (v.notes || []).map(n => ({ id: n.id, text: n.text, ts: n.ts }))
+        }))
+      }))
+    };
   }
 
-  /* ---- People sidebar ---- */
+  async function addPerson(name) {
+    name = name.trim();
+    if (!name) return;
+    const { data, error } = await sb.from("people").insert({ name }).select("id, name").single();
+    if (error) return alert(error.message);
+    state.people.push({ id: data.id, name: data.name, visits: [] });
+    selectPerson(data.id);
+  }
+  async function deletePerson(id) {
+    const p = getPerson(id);
+    if (!p) return;
+    if (!confirm(`Delete ${p.name} and all their visits?`)) return;
+    const { error } = await sb.from("people").delete().eq("id", id);
+    if (error) return alert(error.message);
+    state.people = state.people.filter(x => x.id !== id);
+    if (selectedId === id) selectedId = null;
+    renderPeople();
+    renderMain();
+  }
+  async function addVisit(personId, date, time24) {
+    if (!date || !time24) return;
+    const p = getPerson(personId);
+    if (!p) return;
+    if (p.visits.some(v => v.date === date && v.time24 === time24)) return; // exact duplicate
+    const { data, error } = await sb.from("visits")
+      .insert({ person_id: personId, date, time24 }).select("id, date, time24").single();
+    if (error) return alert(error.message);
+    p.visits.push({ id: data.id, date: data.date, time24: data.time24, notes: [] });
+    renderPeople();
+    renderMain();
+  }
+  async function deleteVisit(personId, visitId) {
+    const p = getPerson(personId);
+    if (!p) return;
+    const { error } = await sb.from("visits").delete().eq("id", visitId);
+    if (error) return alert(error.message);
+    p.visits = p.visits.filter(v => v.id !== visitId);
+    renderPeople();
+    renderMain();
+  }
+  async function addNote(personId, visitId, text) {
+    text = text.trim();
+    if (!text) return;
+    const p = getPerson(personId);
+    const v = p && p.visits.find(v => v.id === visitId);
+    if (!v) return;
+    const { data, error } = await sb.from("notes")
+      .insert({ visit_id: visitId, text }).select("id, text, ts:created_at").single();
+    if (error) return alert(error.message);
+    v.notes.push({ id: data.id, text: data.text, ts: data.ts });
+    renderMain();
+  }
+  async function deleteNote(personId, visitId, noteId) {
+    const p = getPerson(personId);
+    const v = p && p.visits.find(v => v.id === visitId);
+    if (!v) return;
+    const { error } = await sb.from("notes").delete().eq("id", noteId);
+    if (error) return alert(error.message);
+    v.notes = v.notes.filter(n => n.id !== noteId);
+    renderMain();
+  }
+
+  /* ---------------- Render ---------------- */
   function renderPeople() {
-    const list = document.getElementById("peopleList");
+    const list = $("peopleList");
     if (!state.people.length) {
       list.innerHTML = '<li class="empty">No people yet.</li>';
       return;
     }
     const sorted = [...state.people].sort((a, b) =>
-      a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
-    );
+      a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
     list.innerHTML = sorted.map(p => `
       <li class="person-row ${p.id === selectedId ? "active" : ""}" data-id="${p.id}">
         <span class="name">${esc(p.name)}</span>
         <span class="count">${p.visits.length} visit${p.visits.length === 1 ? "" : "s"}</span>
-      </li>
-    `).join("");
-    list.querySelectorAll(".person-row").forEach(row => {
-      row.addEventListener("click", () => selectPerson(row.dataset.id));
-    });
+      </li>`).join("");
+    list.querySelectorAll(".person-row").forEach(row =>
+      row.addEventListener("click", () => selectPerson(row.dataset.id)));
   }
 
   function selectPerson(id) {
@@ -363,15 +474,13 @@
     renderMain();
   }
 
-  /* ---- Main panel ---- */
   function renderMain() {
-    const main = document.getElementById("main");
+    const main = $("main");
     const person = getPerson(selectedId);
     if (!person) {
       main.innerHTML = '<div class="placeholder">Select a person, or add one to get started.</div>';
       return;
     }
-
     const visits = [...person.visits].sort((a, b) =>
       b.date.localeCompare(a.date) || (b.time24 || "").localeCompare(a.time24 || ""));
     const totalNotes = person.visits.reduce((n, v) => n + v.notes.length, 0);
@@ -401,16 +510,14 @@
           ${visits.length ? visits.map(v => renderVisit(v)).join("") :
             '<div class="empty" style="padding-left:0">No visits logged yet.</div>'}
         </div>
-      </div>
-    `;
+      </div>`;
 
-    document.getElementById("deletePerson").addEventListener("click", () => deletePerson(person.id));
-    document.getElementById("logVisitForm").addEventListener("submit", e => {
+    $("deletePerson").addEventListener("click", () => deletePerson(person.id));
+    $("logVisitForm").addEventListener("submit", e => {
       e.preventDefault();
-      const date = document.getElementById("visitDate").value;
-      const timeInput = document.getElementById("visitTime");
-      const meridiem = document.getElementById("visitMeridiem").value;
-      const time24 = parseClock(timeInput.value, meridiem);
+      const date = $("visitDate").value;
+      const timeInput = $("visitTime");
+      const time24 = parseClock(timeInput.value, $("visitMeridiem").value);
       if (!time24) {
         timeInput.focus();
         timeInput.select();
@@ -419,7 +526,6 @@
       }
       addVisit(person.id, date, time24);
     });
-
     main.querySelectorAll("[data-del-visit]").forEach(btn =>
       btn.addEventListener("click", () => deleteVisit(person.id, btn.dataset.delVisit)));
     main.querySelectorAll("[data-del-note]").forEach(btn =>
@@ -427,14 +533,13 @@
     main.querySelectorAll(".add-note").forEach(form =>
       form.addEventListener("submit", e => {
         e.preventDefault();
-        const vid = form.dataset.visit;
         const ta = form.querySelector("textarea");
-        addNote(person.id, vid, ta.value);
+        addNote(person.id, form.dataset.visit, ta.value);
       }));
   }
 
   function renderVisit(v) {
-    const notes = [...v.notes].sort((a, b) => a.ts - b.ts);
+    const notes = [...v.notes].sort((a, b) => new Date(a.ts) - new Date(b.ts));
     return `
       <div class="visit">
         <div class="visit-head">
@@ -458,81 +563,77 @@
             <button class="btn sm ghost" type="submit">Save</button>
           </form>
         </div>
-      </div>
-    `;
+      </div>`;
   }
 
-  /* ---- Mutations ---- */
-  function addPerson(name) {
-    name = name.trim();
-    if (!name) return;
-    const person = { id: uid(), name, visits: [] };
-    state.people.push(person);
-    save();
-    selectPerson(person.id);
+  /* ---------------- Auth ---------------- */
+  function showAuth() {
+    $("appScreen").classList.add("hidden");
+    $("authScreen").classList.remove("hidden");
   }
-  function deletePerson(id) {
-    const p = getPerson(id);
-    if (!p) return;
-    if (!confirm(`Delete ${p.name} and all their visits?`)) return;
-    state.people = state.people.filter(p => p.id !== id);
-    if (selectedId === id) selectedId = null;
-    save();
+  async function enterApp(session) {
+    $("authScreen").classList.add("hidden");
+    $("appScreen").classList.remove("hidden");
+    $("whoAmI").textContent = session.user.email || "";
+    await loadData();
     renderPeople();
     renderMain();
   }
-  function addVisit(personId, date, time24) {
-    if (!date || !time24) return;
-    const p = getPerson(personId);
-    if (!p) return;
-    // Avoid an exact duplicate (same date + same time); otherwise add a new one.
-    let visit = p.visits.find(v => v.date === date && v.time24 === time24);
-    if (!visit) {
-      visit = { id: uid(), date, time24, notes: [] };
-      p.visits.push(visit);
+  function handleSession(session) {
+    const uidNow = session && session.user ? session.user.id : null;
+    if (uidNow && uidNow !== currentUserId) {
+      currentUserId = uidNow;
+      enterApp(session);
+    } else if (!uidNow && currentUserId) {
+      currentUserId = null;
+      selectedId = null;
+      state = { people: [] };
+      showAuth();
     }
-    save();
-    renderPeople();
-    renderMain();
-  }
-  function deleteVisit(personId, visitId) {
-    const p = getPerson(personId);
-    if (!p) return;
-    p.visits = p.visits.filter(v => v.id !== visitId);
-    save();
-    renderPeople();
-    renderMain();
-  }
-  function addNote(personId, visitId, text) {
-    text = text.trim();
-    if (!text) return;
-    const p = getPerson(personId);
-    const v = p && p.visits.find(v => v.id === visitId);
-    if (!v) return;
-    v.notes.push({ id: uid(), text, ts: Date.now() });
-    save();
-    renderMain();
-  }
-  function deleteNote(personId, visitId, noteId) {
-    const p = getPerson(personId);
-    const v = p && p.visits.find(v => v.id === visitId);
-    if (!v) return;
-    v.notes = v.notes.filter(n => n.id !== noteId);
-    save();
-    renderMain();
   }
 
-  /* ---- Init ---- */
-  document.getElementById("addPersonForm").addEventListener("submit", e => {
+  function setMsg(text, kind) {
+    const el = $("authMsg");
+    el.textContent = text || "";
+    el.className = "auth-msg" + (kind ? " " + kind : "");
+  }
+
+  $("authForm").addEventListener("submit", async e => {
     e.preventDefault();
-    const input = document.getElementById("personName");
+    setMsg("Signing in…");
+    const email = $("authEmail").value.trim();
+    const password = $("authPassword").value;
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) setMsg(error.message, "err");
+    else setMsg("");
+  });
+
+  $("signUpBtn").addEventListener("click", async () => {
+    const email = $("authEmail").value.trim();
+    const password = $("authPassword").value;
+    if (!email || !password) { setMsg("Enter an email and password first.", "err"); return; }
+    setMsg("Creating account…");
+    const { data, error } = await sb.auth.signUp({ email, password });
+    if (error) { setMsg(error.message, "err"); return; }
+    if (data.session) setMsg("");                    // logged straight in
+    else setMsg("Account created — check your email to confirm, then sign in.", "ok");
+  });
+
+  $("logoutBtn").addEventListener("click", async () => {
+    await sb.auth.signOut();
+  });
+
+  $("addPersonForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const input = $("personName");
     addPerson(input.value);
     input.value = "";
     input.focus();
   });
 
-  renderPeople();
-  renderMain();
+  /* ---------------- Init ---------------- */
+  sb.auth.getSession().then(({ data }) => handleSession(data.session));
+  sb.auth.onAuthStateChange((_event, session) => handleSession(session));
 })();
 </script>
 </body>
