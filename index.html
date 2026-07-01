@@ -233,6 +233,24 @@
     font-size: 12px;
   }
   .icon-btn:hover { color: var(--fg); background: rgba(0,0,0,.06); }
+
+  .mobile-only { display: none; }
+
+  /* ---- Mobile: single column, master–detail ---- */
+  @media (max-width: 720px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { border-right: none; }
+    .app .main { display: none; }
+    .app.show-detail .sidebar { display: none; }
+    .app.show-detail .main { display: block; }
+
+    .main-inner { padding: 22px 18px 64px; }
+    .person-head h2 { font-size: 22px; }
+    .log-visit { flex-wrap: wrap; }
+    .add-person { padding: 14px 18px; }
+
+    .mobile-only { display: inline-flex !important; }
+  }
 </style>
 </head>
 <body>
@@ -470,8 +488,14 @@
 
   function selectPerson(id) {
     selectedId = id;
+    // On mobile this slides from the people list into the detail view.
+    $("appScreen").classList.add("show-detail");
     renderPeople();
     renderMain();
+  }
+  function showList() {
+    // Mobile "back" — return to the people list.
+    $("appScreen").classList.remove("show-detail");
   }
 
   function renderMain() {
@@ -479,6 +503,7 @@
     const person = getPerson(selectedId);
     if (!person) {
       main.innerHTML = '<div class="placeholder">Select a person, or add one to get started.</div>';
+      $("appScreen").classList.remove("show-detail");
       return;
     }
     const visits = [...person.visits].sort((a, b) =>
@@ -489,7 +514,10 @@
     main.innerHTML = `
       <div class="main-inner">
         <div class="person-head">
-          <h2>${esc(person.name)}</h2>
+          <div style="display:flex;align-items:center;gap:10px;min-width:0">
+            <button class="btn ghost sm mobile-only" id="backBtn">← People</button>
+            <h2>${esc(person.name)}</h2>
+          </div>
           <button class="icon-btn" id="deletePerson">Delete person</button>
         </div>
         <div class="subtle">${person.visits.length} visit${person.visits.length === 1 ? "" : "s"} · ${totalNotes} note${totalNotes === 1 ? "" : "s"}</div>
@@ -512,6 +540,8 @@
         </div>
       </div>`;
 
+    const backBtn = $("backBtn");
+    if (backBtn) backBtn.addEventListener("click", showList);
     $("deletePerson").addEventListener("click", () => deletePerson(person.id));
     $("logVisitForm").addEventListener("submit", e => {
       e.preventDefault();
