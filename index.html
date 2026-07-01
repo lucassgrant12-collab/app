@@ -186,6 +186,18 @@
     margin-bottom: 4px;
   }
   .person-head h2 { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; }
+  .person-id { display: flex; align-items: center; gap: 12px; min-width: 0; flex-wrap: wrap; }
+  .total-badge {
+    flex: 0 0 auto;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--fg);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 4px 11px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
   .subtle { color: var(--muted); font-size: 13px; margin-bottom: 28px; }
 
   .log-visit {
@@ -427,15 +439,28 @@
     if (!start) return "";
     return end ? fmtClock(start) + " – " + fmtClock(end) : fmtClock(start);
   }
-  // Human duration between two 24h times, e.g. "1h 30m". Blank if end ≤ start.
-  function fmtDuration(start, end) {
-    if (!start || !end) return "";
+  // Minutes between two 24h times (0 if missing or end ≤ start).
+  function minutesBetween(start, end) {
+    if (!start || !end) return 0;
     const [sh, sm] = start.split(":").map(Number);
     const [eh, em] = end.split(":").map(Number);
-    let mins = (eh * 60 + em) - (sh * 60 + sm);
-    if (mins <= 0) return "";
+    const mins = (eh * 60 + em) - (sh * 60 + sm);
+    return mins > 0 ? mins : 0;
+  }
+  // Format a minute count as "1h 30m" (or "0m").
+  function fmtMinutes(mins) {
+    if (!mins) return "0m";
     const h = Math.floor(mins / 60), m = mins % 60;
     return (h ? h + "h" : "") + (h && m ? " " : "") + (m ? m + "m" : "");
+  }
+  // Human duration between two 24h times, e.g. "1h 30m". Blank if end ≤ start.
+  function fmtDuration(start, end) {
+    const mins = minutesBetween(start, end);
+    return mins ? fmtMinutes(mins) : "";
+  }
+  // Total attended minutes across all of a person's visits.
+  function totalMinutes(person) {
+    return person.visits.reduce((sum, v) => sum + minutesBetween(v.time24, v.end24), 0);
   }
   function nowClock() {
     const d = new Date();
@@ -592,9 +617,10 @@
       <div class="main-inner">
         <button class="btn ghost sm mobile-only" id="backBtn" style="margin-bottom:16px">← People</button>
         <div class="person-head">
-          <div style="display:flex;align-items:center;gap:14px;min-width:0">
+          <div class="person-id">
             <span class="avatar lg">${esc(initials(person.name))}</span>
             <h2>${esc(person.name)}</h2>
+            <span class="total-badge" title="Total time attended">${fmtMinutes(totalMinutes(person))} total</span>
           </div>
           <button class="icon-btn" id="deletePerson">Delete person</button>
         </div>
