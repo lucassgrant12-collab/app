@@ -280,8 +280,16 @@
 
     .main-inner { padding: 22px 18px 64px; }
     .person-head h2 { font-size: 22px; }
-    .log-visit { flex-wrap: wrap; }
     .add-person { padding: 14px 18px; }
+
+    /* Log-visit: stack into a clean single column */
+    .log-visit { flex-direction: column; align-items: stretch; gap: 12px; }
+    .log-visit label { font-weight: 600; color: var(--fg); font-size: 14px; }
+    .log-visit input[type="date"] { width: 100%; }
+    .time-field { justify-content: flex-start; }
+    .time-field .flabel { width: 42px; }
+    .time-field .time-input { flex: 1; }
+    .log-visit .btn { margin-left: 0; width: 100%; text-align: center; padding: 11px; }
 
     .mobile-only { display: inline-flex !important; }
   }
