@@ -160,14 +160,21 @@
     margin-bottom: 28px;
   }
   .log-visit label { font-size: 13px; color: var(--muted); }
-  .log-visit input[type="date"] {
+  .log-visit input[type="date"],
+  .log-visit input[type="text"],
+  .log-visit select {
     border: 1px solid var(--line);
     background: var(--bg);
     padding: 8px 10px;
     border-radius: 6px;
     outline: none;
   }
-  .log-visit input[type="date"]:focus { border-color: var(--fg); }
+  .log-visit input[type="date"]:focus,
+  .log-visit input[type="text"]:focus,
+  .log-visit select:focus { border-color: var(--fg); }
+  .log-visit input.time-input { width: 72px; text-align: center; }
+  .log-visit select { cursor: pointer; }
+  .visit-time { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 10px; }
 
   .visit {
     border: 1px solid var(--line);
@@ -293,6 +300,37 @@
       month: "short", day: "numeric", hour: "numeric", minute: "2-digit"
     });
   }
+  // Parse a typed time ("9", "9:30", "930") + AM/PM into canonical 24h "HH:MM".
+  function parseClock(text, meridiem) {
+    text = (text || "").trim();
+    if (!text) return null;
+    const m = text.match(/^(\d{1,2})[:.]?(\d{2})?$/);
+    if (!m) return null;
+    let h = parseInt(m[1], 10);
+    const min = m[2] ? parseInt(m[2], 10) : 0;
+    if (h < 1 || h > 12 || min > 59) return null;
+    let h24 = h % 12;
+    if (meridiem === "PM") h24 += 12;
+    return String(h24).padStart(2, "0") + ":" + String(min).padStart(2, "0");
+  }
+  // Format canonical 24h "HH:MM" for display as "9:30 AM".
+  function fmtClock(t) {
+    if (!t) return "";
+    const [h, m] = t.split(":").map(Number);
+    const mer = h >= 12 ? "PM" : "AM";
+    let h12 = h % 12;
+    if (h12 === 0) h12 = 12;
+    return h12 + ":" + String(m).padStart(2, "0") + " " + mer;
+  }
+  // Current wall-clock time, split for prefilling the form.
+  function nowClock() {
+    const d = new Date();
+    const h = d.getHours();
+    const mer = h >= 12 ? "PM" : "AM";
+    let h12 = h % 12;
+    if (h12 === 0) h12 = 12;
+    return { text: h12 + ":" + String(d.getMinutes()).padStart(2, "0"), meridiem: mer };
+  }
 
   function getPerson(id) {
     return state.people.find(p => p.id === id);
@@ -334,8 +372,10 @@
       return;
     }
 
-    const visits = [...person.visits].sort((a, b) => b.date.localeCompare(a.date));
+    const visits = [...person.visits].sort((a, b) =>
+      b.date.localeCompare(a.date) || (b.time24 || "").localeCompare(a.time24 || ""));
     const totalNotes = person.visits.reduce((n, v) => n + v.notes.length, 0);
+    const now = nowClock();
 
     main.innerHTML = `
       <div class="main-inner">
@@ -348,6 +388,12 @@
         <form class="log-visit" id="logVisitForm">
           <label for="visitDate">Log a visit</label>
           <input type="date" id="visitDate" value="${todayISO()}" max="${todayISO()}" />
+          <input type="text" id="visitTime" class="time-input" placeholder="9:30"
+                 value="${now.text}" inputmode="numeric" autocomplete="off" aria-label="Time" />
+          <select id="visitMeridiem" aria-label="AM or PM">
+            <option value="AM" ${now.meridiem === "AM" ? "selected" : ""}>AM</option>
+            <option value="PM" ${now.meridiem === "PM" ? "selected" : ""}>PM</option>
+          </select>
           <button class="btn sm" type="submit">Add visit</button>
         </form>
 
@@ -361,7 +407,17 @@
     document.getElementById("deletePerson").addEventListener("click", () => deletePerson(person.id));
     document.getElementById("logVisitForm").addEventListener("submit", e => {
       e.preventDefault();
-      addVisit(person.id, document.getElementById("visitDate").value);
+      const date = document.getElementById("visitDate").value;
+      const timeInput = document.getElementById("visitTime");
+      const meridiem = document.getElementById("visitMeridiem").value;
+      const time24 = parseClock(timeInput.value, meridiem);
+      if (!time24) {
+        timeInput.focus();
+        timeInput.select();
+        alert("Enter a time like 9 or 9:30, then pick AM or PM.");
+        return;
+      }
+      addVisit(person.id, date, time24);
     });
 
     main.querySelectorAll("[data-del-visit]").forEach(btn =>
@@ -382,7 +438,7 @@
     return `
       <div class="visit">
         <div class="visit-head">
-          <div class="visit-date">${fmtDate(v.date)}<span class="visit-day">${weekday(v.date)}</span></div>
+          <div class="visit-date">${fmtDate(v.date)}<span class="visit-day">${weekday(v.date)}</span>${v.time24 ? `<span class="visit-time">${fmtClock(v.time24)}</span>` : ""}</div>
           <button class="icon-btn" data-del-visit="${v.id}">Remove</button>
         </div>
         <div class="visit-body">
@@ -425,13 +481,14 @@
     renderPeople();
     renderMain();
   }
-  function addVisit(personId, date) {
-    if (!date) return;
+  function addVisit(personId, date, time24) {
+    if (!date || !time24) return;
     const p = getPerson(personId);
     if (!p) return;
-    let visit = p.visits.find(v => v.date === date);
+    // Avoid an exact duplicate (same date + same time); otherwise add a new one.
+    let visit = p.visits.find(v => v.date === date && v.time24 === time24);
     if (!visit) {
-      visit = { id: uid(), date, notes: [] };
+      visit = { id: uid(), date, time24, notes: [] };
       p.visits.push(visit);
     }
     save();
