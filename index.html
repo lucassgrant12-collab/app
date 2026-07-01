@@ -291,13 +291,13 @@
     .person-head h2 { font-size: 22px; }
     .add-person { padding: 14px 18px; }
 
-    /* Log-visit: stack into a clean single column */
-    .log-visit { flex-direction: column; align-items: stretch; gap: 12px; }
+    /* Log-visit: stack into a clean single column, inputs sized to content */
+    .log-visit { flex-direction: column; align-items: flex-start; gap: 12px; }
     .log-visit label { font-weight: 600; color: var(--fg); font-size: 14px; }
-    .log-visit input[type="date"] { width: 100%; }
-    .time-field { justify-content: flex-start; }
+    .log-visit input[type="date"] { width: auto; max-width: 100%; }
+    .time-field { justify-content: flex-start; gap: 8px; }
     .time-field .flabel { width: 42px; }
-    .time-field .time-input { flex: 1; }
+    .time-field .time-input { flex: 0 0 auto; width: 72px; }
     .log-visit .btn { margin-left: 0; width: 100%; text-align: center; padding: 11px; }
 
     .mobile-only { display: inline-flex !important; }
