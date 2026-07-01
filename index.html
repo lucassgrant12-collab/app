@@ -190,18 +190,18 @@
 
   .log-visit {
     display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
-    row-gap: 12px;
+    flex-direction: column;
+    gap: 14px;
     padding: 16px;
     border: 1px solid var(--line);
     border-radius: 12px;
     margin-bottom: 28px;
     box-shadow: var(--shadow);
   }
+  .lv-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .lv-times { gap: 18px; }
   .log-visit label { font-size: 13px; color: var(--muted); white-space: nowrap; }
-  .log-visit .btn { margin-left: auto; }
+  .log-visit .btn { align-self: center; padding: 8px 22px; }
   .log-visit input[type="date"],
   .log-visit input[type="text"],
   .log-visit select {
@@ -239,6 +239,7 @@
     margin-top: 2px;
     overflow-wrap: anywhere;
   }
+  .visit-times { font-size: 13px; font-weight: 500; color: #3a3a3a; }
   .visit-head .icon-btn { flex: 0 0 auto; }
   .visit-body { padding: 8px 16px 16px; }
   .notes { list-style: none; }
@@ -290,15 +291,6 @@
     .main-inner { padding: 22px 18px 64px; }
     .person-head h2 { font-size: 22px; }
     .add-person { padding: 14px 18px; }
-
-    /* Log-visit: stack into a clean single column, inputs sized to content */
-    .log-visit { flex-direction: column; align-items: flex-start; gap: 12px; }
-    .log-visit label { font-weight: 600; color: var(--fg); font-size: 14px; }
-    .log-visit input[type="date"] { width: auto; max-width: 100%; }
-    .time-field { justify-content: flex-start; gap: 8px; }
-    .time-field .flabel { width: 42px; }
-    .time-field .time-input { flex: 0 0 auto; width: 72px; }
-    .log-visit .btn { margin-left: 0; width: 100%; text-align: center; padding: 11px; }
 
     .mobile-only { display: inline-flex !important; }
   }
@@ -601,27 +593,31 @@
         <div class="subtle">${person.visits.length} visit${person.visits.length === 1 ? "" : "s"} · ${totalNotes} note${totalNotes === 1 ? "" : "s"}</div>
 
         <form class="log-visit" id="logVisitForm">
-          <label for="visitDate">Log a visit</label>
-          <input type="date" id="visitDate" value="${todayISO()}" max="${todayISO()}" />
-          <span class="time-field">
-            <span class="flabel">Start</span>
-            <input type="text" id="startTime" class="time-input" placeholder="9:30"
-                   value="${now.text}" inputmode="numeric" autocomplete="off" aria-label="Start time" />
-            <select id="startMeridiem" aria-label="Start AM or PM">
-              <option value="AM" ${now.meridiem === "AM" ? "selected" : ""}>AM</option>
-              <option value="PM" ${now.meridiem === "PM" ? "selected" : ""}>PM</option>
-            </select>
-          </span>
-          <span class="time-field">
-            <span class="flabel">End</span>
-            <input type="text" id="endTime" class="time-input" placeholder="5:30"
-                   inputmode="numeric" autocomplete="off" aria-label="End time" />
-            <select id="endMeridiem" aria-label="End AM or PM">
-              <option value="AM" ${now.meridiem === "AM" ? "selected" : ""}>AM</option>
-              <option value="PM" ${now.meridiem === "PM" ? "selected" : ""}>PM</option>
-            </select>
-          </span>
-          <button class="btn sm" type="submit">Add visit</button>
+          <div class="lv-row">
+            <label for="visitDate">Log a visit</label>
+            <input type="date" id="visitDate" value="${todayISO()}" max="${todayISO()}" />
+          </div>
+          <div class="lv-row lv-times">
+            <span class="time-field">
+              <span class="flabel">Start</span>
+              <input type="text" id="startTime" class="time-input" placeholder="9:30"
+                     value="${now.text}" inputmode="numeric" autocomplete="off" aria-label="Start time" />
+              <select id="startMeridiem" aria-label="Start AM or PM">
+                <option value="AM" ${now.meridiem === "AM" ? "selected" : ""}>AM</option>
+                <option value="PM" ${now.meridiem === "PM" ? "selected" : ""}>PM</option>
+              </select>
+            </span>
+            <span class="time-field">
+              <span class="flabel">End</span>
+              <input type="text" id="endTime" class="time-input" placeholder="5:30"
+                     inputmode="numeric" autocomplete="off" aria-label="End time" />
+              <select id="endMeridiem" aria-label="End AM or PM">
+                <option value="AM" ${now.meridiem === "AM" ? "selected" : ""}>AM</option>
+                <option value="PM" ${now.meridiem === "PM" ? "selected" : ""}>PM</option>
+              </select>
+            </span>
+          </div>
+          <button class="btn sm" type="submit">Add</button>
         </form>
 
         <div id="visits">
@@ -676,7 +672,7 @@
         <div class="visit-head">
           <div class="visit-date">
             ${fmtDate(v.date)}
-            <span class="visit-sub">${weekday(v.date)}${v.time24 ? ` · ${fmtRange(v.time24, v.end24)}${fmtDuration(v.time24, v.end24) ? ` · ${fmtDuration(v.time24, v.end24)}` : ""}` : ""}</span>
+            <span class="visit-sub">${weekday(v.date)}${v.time24 ? ` · <span class="visit-times">${fmtRange(v.time24, v.end24)}</span>${fmtDuration(v.time24, v.end24) ? ` · ${fmtDuration(v.time24, v.end24)}` : ""}` : ""}</span>
           </div>
           <button class="icon-btn" data-del-visit="${v.id}">Remove</button>
         </div>
