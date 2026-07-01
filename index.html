@@ -223,14 +223,23 @@
   .visit { border: 1px solid var(--line); border-radius: 12px; margin-bottom: 14px; overflow: hidden; box-shadow: var(--shadow); }
   .visit-head {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
+    gap: 12px;
     padding: 14px 16px;
     background: var(--panel);
     border-bottom: 1px solid var(--line);
   }
-  .visit-date { font-weight: 600; letter-spacing: -0.01em; }
-  .visit-day { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 8px; }
+  .visit-date { font-weight: 600; letter-spacing: -0.01em; min-width: 0; }
+  .visit-sub {
+    display: block;
+    color: var(--muted);
+    font-weight: 400;
+    font-size: 12px;
+    margin-top: 2px;
+    overflow-wrap: anywhere;
+  }
+  .visit-head .icon-btn { flex: 0 0 auto; }
   .visit-body { padding: 8px 16px 16px; }
   .notes { list-style: none; }
   .note {
@@ -665,7 +674,10 @@
     return `
       <div class="visit">
         <div class="visit-head">
-          <div class="visit-date">${fmtDate(v.date)}<span class="visit-day">${weekday(v.date)}</span>${v.time24 ? `<span class="visit-time">${fmtRange(v.time24, v.end24)}${fmtDuration(v.time24, v.end24) ? ` · ${fmtDuration(v.time24, v.end24)}` : ""}</span>` : ""}</div>
+          <div class="visit-date">
+            ${fmtDate(v.date)}
+            <span class="visit-sub">${weekday(v.date)}${v.time24 ? ` · ${fmtRange(v.time24, v.end24)}${fmtDuration(v.time24, v.end24) ? ` · ${fmtDuration(v.time24, v.end24)}` : ""}` : ""}</span>
+          </div>
           <button class="icon-btn" data-del-visit="${v.id}">Remove</button>
         </div>
         <div class="visit-body">
