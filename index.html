@@ -190,15 +190,18 @@
 
   .log-visit {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     align-items: center;
+    flex-wrap: wrap;
+    row-gap: 12px;
     padding: 16px;
     border: 1px solid var(--line);
     border-radius: 12px;
     margin-bottom: 28px;
     box-shadow: var(--shadow);
   }
-  .log-visit label { font-size: 13px; color: var(--muted); }
+  .log-visit label { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .log-visit .btn { margin-left: auto; }
   .log-visit input[type="date"],
   .log-visit input[type="text"],
   .log-visit select {
@@ -594,7 +597,7 @@
           </span>
           <span class="time-field">
             <span class="flabel">End</span>
-            <input type="text" id="endTime" class="time-input" placeholder="optional"
+            <input type="text" id="endTime" class="time-input" placeholder="5:30"
                    inputmode="numeric" autocomplete="off" aria-label="End time" />
             <select id="endMeridiem" aria-label="End AM or PM">
               <option value="AM" ${now.meridiem === "AM" ? "selected" : ""}>AM</option>
