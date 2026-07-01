@@ -213,6 +213,8 @@
   .log-visit select:focus { border-color: var(--fg); }
   .log-visit input.time-input { width: 72px; text-align: center; }
   .log-visit select { cursor: pointer; }
+  .time-field { display: inline-flex; align-items: center; gap: 6px; }
+  .time-field .flabel { font-size: 12px; color: var(--muted); }
   .visit-time { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 10px; }
 
   .visit { border: 1px solid var(--line); border-radius: 12px; margin-bottom: 14px; overflow: hidden; box-shadow: var(--shadow); }
@@ -402,6 +404,21 @@
     if (h12 === 0) h12 = 12;
     return h12 + ":" + String(m).padStart(2, "0") + " " + mer;
   }
+  // "9:30 AM – 11:00 AM" (or just the start if there's no end).
+  function fmtRange(start, end) {
+    if (!start) return "";
+    return end ? fmtClock(start) + " – " + fmtClock(end) : fmtClock(start);
+  }
+  // Human duration between two 24h times, e.g. "1h 30m". Blank if end ≤ start.
+  function fmtDuration(start, end) {
+    if (!start || !end) return "";
+    const [sh, sm] = start.split(":").map(Number);
+    const [eh, em] = end.split(":").map(Number);
+    let mins = (eh * 60 + em) - (sh * 60 + sm);
+    if (mins <= 0) return "";
+    const h = Math.floor(mins / 60), m = mins % 60;
+    return (h ? h + "h" : "") + (h && m ? " " : "") + (m ? m + "m" : "");
+  }
   function nowClock() {
     const d = new Date();
     const h = d.getHours();
@@ -422,7 +439,7 @@
   async function loadData() {
     const { data, error } = await sb
       .from("people")
-      .select("id, name, visits ( id, date, time24, notes ( id, text, ts:created_at ) )");
+      .select("id, name, visits ( id, date, time24, end24, notes ( id, text, ts:created_at ) )");
     if (error) {
       console.error(error);
       alert("Could not load your data: " + error.message);
@@ -434,7 +451,7 @@
         id: p.id,
         name: p.name,
         visits: (p.visits || []).map(v => ({
-          id: v.id, date: v.date, time24: v.time24,
+          id: v.id, date: v.date, time24: v.time24, end24: v.end24,
           notes: (v.notes || []).map(n => ({ id: n.id, text: n.text, ts: n.ts }))
         }))
       }))
@@ -460,15 +477,17 @@
     renderPeople();
     renderMain();
   }
-  async function addVisit(personId, date, time24) {
-    if (!date || !time24) return;
+  async function addVisit(personId, date, start24, end24) {
+    if (!date || !start24) return;
     const p = getPerson(personId);
     if (!p) return;
-    if (p.visits.some(v => v.date === date && v.time24 === time24)) return; // exact duplicate
+    // exact duplicate (same date + same start + same end)
+    if (p.visits.some(v => v.date === date && v.time24 === start24 && (v.end24 || null) === (end24 || null))) return;
     const { data, error } = await sb.from("visits")
-      .insert({ person_id: personId, date, time24 }).select("id, date, time24").single();
+      .insert({ person_id: personId, date, time24: start24, end24: end24 })
+      .select("id, date, time24, end24").single();
     if (error) return alert(error.message);
-    p.visits.push({ id: data.id, date: data.date, time24: data.time24, notes: [] });
+    p.visits.push({ id: data.id, date: data.date, time24: data.time24, end24: data.end24, notes: [] });
     renderPeople();
     renderMain();
   }
@@ -564,12 +583,24 @@
         <form class="log-visit" id="logVisitForm">
           <label for="visitDate">Log a visit</label>
           <input type="date" id="visitDate" value="${todayISO()}" max="${todayISO()}" />
-          <input type="text" id="visitTime" class="time-input" placeholder="9:30"
-                 value="${now.text}" inputmode="numeric" autocomplete="off" aria-label="Time" />
-          <select id="visitMeridiem" aria-label="AM or PM">
-            <option value="AM" ${now.meridiem === "AM" ? "selected" : ""}>AM</option>
-            <option value="PM" ${now.meridiem === "PM" ? "selected" : ""}>PM</option>
-          </select>
+          <span class="time-field">
+            <span class="flabel">Start</span>
+            <input type="text" id="startTime" class="time-input" placeholder="9:30"
+                   value="${now.text}" inputmode="numeric" autocomplete="off" aria-label="Start time" />
+            <select id="startMeridiem" aria-label="Start AM or PM">
+              <option value="AM" ${now.meridiem === "AM" ? "selected" : ""}>AM</option>
+              <option value="PM" ${now.meridiem === "PM" ? "selected" : ""}>PM</option>
+            </select>
+          </span>
+          <span class="time-field">
+            <span class="flabel">End</span>
+            <input type="text" id="endTime" class="time-input" placeholder="optional"
+                   inputmode="numeric" autocomplete="off" aria-label="End time" />
+            <select id="endMeridiem" aria-label="End AM or PM">
+              <option value="AM" ${now.meridiem === "AM" ? "selected" : ""}>AM</option>
+              <option value="PM" ${now.meridiem === "PM" ? "selected" : ""}>PM</option>
+            </select>
+          </span>
           <button class="btn sm" type="submit">Add visit</button>
         </form>
 
@@ -585,15 +616,26 @@
     $("logVisitForm").addEventListener("submit", e => {
       e.preventDefault();
       const date = $("visitDate").value;
-      const timeInput = $("visitTime");
-      const time24 = parseClock(timeInput.value, $("visitMeridiem").value);
-      if (!time24) {
-        timeInput.focus();
-        timeInput.select();
-        alert("Enter a time like 9 or 9:30, then pick AM or PM.");
+      const startInput = $("startTime");
+      const endInput = $("endTime");
+      const start24 = parseClock(startInput.value, $("startMeridiem").value);
+      if (!start24) {
+        startInput.focus();
+        startInput.select();
+        alert("Enter a start time like 9 or 9:30, then pick AM or PM.");
         return;
       }
-      addVisit(person.id, date, time24);
+      let end24 = null;
+      if (endInput.value.trim()) {
+        end24 = parseClock(endInput.value, $("endMeridiem").value);
+        if (!end24) {
+          endInput.focus();
+          endInput.select();
+          alert("End time looks off — use something like 5 or 5:30, or leave it blank.");
+          return;
+        }
+      }
+      addVisit(person.id, date, start24, end24);
     });
     main.querySelectorAll("[data-del-visit]").forEach(btn =>
       btn.addEventListener("click", () => deleteVisit(person.id, btn.dataset.delVisit)));
@@ -612,7 +654,7 @@
     return `
       <div class="visit">
         <div class="visit-head">
-          <div class="visit-date">${fmtDate(v.date)}<span class="visit-day">${weekday(v.date)}</span>${v.time24 ? `<span class="visit-time">${fmtClock(v.time24)}</span>` : ""}</div>
+          <div class="visit-date">${fmtDate(v.date)}<span class="visit-day">${weekday(v.date)}</span>${v.time24 ? `<span class="visit-time">${fmtRange(v.time24, v.end24)}${fmtDuration(v.time24, v.end24) ? ` · ${fmtDuration(v.time24, v.end24)}` : ""}</span>` : ""}</div>
           <button class="icon-btn" data-del-visit="${v.id}">Remove</button>
         </div>
         <div class="visit-body">

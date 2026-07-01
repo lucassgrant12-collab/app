@@ -18,9 +18,13 @@ create table if not exists public.visits (
   user_id    uuid not null default auth.uid() references auth.users (id) on delete cascade,
   person_id  uuid not null references public.people (id) on delete cascade,
   date       date not null,
-  time24     text not null,          -- 24h "HH:MM", e.g. "09:30" or "14:05"
+  time24     text not null,          -- start time, 24h "HH:MM" (e.g. "09:30")
+  end24      text,                   -- end time, 24h "HH:MM" (optional)
   created_at timestamptz not null default now()
 );
+
+-- If you created the visits table before end times existed, run this once:
+alter table public.visits add column if not exists end24 text;
 
 create table if not exists public.notes (
   id         uuid primary key default gen_random_uuid(),
