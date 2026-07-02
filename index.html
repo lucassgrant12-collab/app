@@ -581,14 +581,17 @@
     }
     const sorted = [...state.people].sort((a, b) =>
       a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
-    list.innerHTML = sorted.map(p => `
+    list.innerHTML = sorted.map(p => {
+      const total = totalMinutes(p);
+      return `
       <li class="person-row ${p.id === selectedId ? "active" : ""}" data-id="${p.id}">
         <span class="avatar">${esc(initials(p.name))}</span>
         <span class="person-meta">
           <span class="name">${esc(p.name)}</span>
-          <span class="count">${p.visits.length} visit${p.visits.length === 1 ? "" : "s"}</span>
+          <span class="count">${p.visits.length} visit${p.visits.length === 1 ? "" : "s"}${total ? ` · ${fmtMinutes(total)}` : ""}</span>
         </span>
-      </li>`).join("");
+      </li>`;
+    }).join("");
     list.querySelectorAll(".person-row").forEach(row =>
       row.addEventListener("click", () => selectPerson(row.dataset.id)));
   }
@@ -616,7 +619,6 @@
     }
     const visits = [...person.visits].sort((a, b) =>
       b.date.localeCompare(a.date) || (b.time24 || "").localeCompare(a.time24 || ""));
-    const totalNotes = person.visits.reduce((n, v) => n + v.notes.length, 0);
     const now = nowClock();
 
     main.innerHTML = `
@@ -630,7 +632,7 @@
           </div>
           <button class="icon-btn" id="deletePerson">Delete person</button>
         </div>
-        <div class="subtle">${person.visits.length} visit${person.visits.length === 1 ? "" : "s"} · ${totalNotes} note${totalNotes === 1 ? "" : "s"}</div>
+        <div class="subtle">${person.visits.length} visit${person.visits.length === 1 ? "" : "s"}</div>
 
         ${showVisitForm ? `
         <form class="log-visit" id="logVisitForm">
