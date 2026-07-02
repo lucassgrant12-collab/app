@@ -412,6 +412,12 @@
       month: "short", day: "numeric", hour: "numeric", minute: "2-digit"
     });
   }
+  // Live mask: keep only digits and auto-place the colon ("930" -> "9:30").
+  function maskTime(raw) {
+    const d = String(raw).replace(/\D/g, "").slice(0, 4);
+    if (d.length <= 2) return d;              // "9", "12"
+    return d.slice(0, d.length - 2) + ":" + d.slice(d.length - 2);
+  }
   // Parse a typed time ("9", "9:30", "930") + AM/PM into canonical 24h "HH:MM".
   function parseClock(text, meridiem) {
     text = (text || "").trim();
@@ -670,6 +676,10 @@
     $("deletePerson").addEventListener("click", () => deletePerson(person.id));
 
     if (showVisitForm) {
+      ["startTime", "endTime"].forEach(id => {
+        const el = $(id);
+        el.addEventListener("input", () => { el.value = maskTime(el.value); });
+      });
       $("cancelAddVisit").addEventListener("click", () => { showVisitForm = false; renderMain(); });
       $("logVisitForm").addEventListener("submit", e => {
         e.preventDefault();
